@@ -5,7 +5,7 @@ import os
 from django.contrib import messages
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.utils.encoding import smart_text
 from django.utils.translation import ugettext as _
 
@@ -31,16 +31,19 @@ def path_exists(site, function):
     "Check if the given path exists."
 
     def decorator(request, *args, **kwargs):
-        # TODO: This check should be moved to a better location than a decorator
-        if get_path('', site=site) is None:
-            # The storage location does not exist, raise an error to prevent eternal redirecting.
-            raise ImproperlyConfigured(_("Error finding Upload-Folder (site.storage.location + site.directory). Maybe it does not exist?"))
-        if get_path(request.GET.get('dir', ''), site=site) is None:
-            msg = _('The requested Folder does not exist.')
-            messages.add_message(request, messages.ERROR, msg)
-            redirect_url = reverse("filebrowser:fb_browse", current_app=site.name) + query_helper(request.GET, u"", "dir")
-            return HttpResponseRedirect(redirect_url)
-        return function(request, *args, **kwargs)
+        if request.user.has_perm('filebrowser.use_filebrowser'):
+            # TODO: This check should be moved to a better location than a decorator
+            if get_path('', site=site) is None:
+                # The storage location does not exist, raise an error to prevent eternal redirecting.
+                raise ImproperlyConfigured(_("Error finding Upload-Folder (site.storage.location + site.directory). Maybe it does not exist?"))
+            if get_path(request.GET.get('dir', ''), site=site) is None:
+                msg = _('The requested Folder does not exist.')
+                messages.add_message(request, messages.ERROR, msg)
+                redirect_url = reverse("filebrowser:fb_browse", current_app=site.name) + query_helper(request.GET, u"", "dir")
+                return HttpResponseRedirect(redirect_url)
+            return function(request, *args, **kwargs)
+        else:
+            return HttpResponseForbidden()
     return decorator
 
 
@@ -56,3 +59,4 @@ def file_exists(site, function):
             return HttpResponseRedirect(redirect_url)
         return function(request, *args, **kwargs)
     return decorator
+
