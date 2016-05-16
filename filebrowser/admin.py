@@ -10,11 +10,17 @@ from .compat import patterns
 class FileBrowserAdmin(admin.ModelAdmin):
     actions = []
 
+    def has_use_permission(self, user):
+        return user.has_perm('filebrowser.use_filebrowser')
+
     def has_add_permission(self, request):
-        return False
+        return self.has_use_permission(request.user)
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return self.has_use_permission(request.user)
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_use_permission(request.user)
 
     def get_urls(self):
         opts = self.model._meta
@@ -29,3 +35,4 @@ class FileBrowserAdmin(admin.ModelAdmin):
 
 if SHOW_IN_DASHBOARD:
     admin.site.register(FileBrowser, FileBrowserAdmin)
+

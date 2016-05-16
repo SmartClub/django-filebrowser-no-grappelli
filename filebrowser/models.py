@@ -7,3 +7,5 @@ class FileBrowser(models.Model):
         managed = False
         verbose_name = _("FileBrowser")
         verbose_name_plural = _("FileBrowser")
+        permissions = (("use_filebrowser", "Can use Filebrowser"),)
+
