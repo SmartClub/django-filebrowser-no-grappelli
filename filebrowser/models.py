@@ -3,6 +3,8 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class FileBrowser(models.Model):
+    permission_verbose_name = 'Файловый менеджер'
+
     class Meta:
         managed = False
         verbose_name = _("FileBrowser")
